@@ -14,11 +14,12 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import android.widget.*
+import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
 
-    var CITY: String = "rzeszow,pl" // Domyślne miasto
-    val API: String = "f01e80368f05c66b03425d3f08ab1a1c" // Klucz API
+    var CITY: String = "Rzeszów,PL" // Domyślne miasto
+    val API: String = "7b02db76a019da40323a7ba8c275a0d9" // Klucz API
 
     fun hideKeyboard(activity: Activity) {
         val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -69,10 +70,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun doInBackground(vararg params: String?): String? {
+            var geoResponse:String?
             var response:String?
             try{
-                response = URL("https://api.openweathermap.org/data/2.5/weather?q=$CITY&units=metric&lang=pl&appid=$API").
+                geoResponse = URL("https://api.openweathermap.org/geo/1.0/direct?q=$CITY&limit=1&appid=$API").
                 readText(Charsets.UTF_8)
+
+                val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
+                val name = jsonGeoObject.getString("name")
+                val country = jsonGeoObject.getString("country")
+                val lat = jsonGeoObject.getString("lat")
+                val lon = jsonGeoObject.getString("lon")
+
+                response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").
+                readText(Charsets.UTF_8)
+
+                val jsonResponse = JSONObject(response)
+                jsonResponse.put("name", name)
+                jsonResponse.put("country", country)
+                response = jsonResponse.toString()
 
             }catch (e: Exception){
                 response = null
@@ -97,31 +113,34 @@ class MainActivity : AppCompatActivity() {
                     findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
                 }else{
                     val jsonObj = JSONObject(result)
-                    val main = jsonObj.getJSONObject("main")
-                    val sys = jsonObj.getJSONObject("sys")
-                    val wind = jsonObj.getJSONObject("wind")
-                    val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
+                    val current = jsonObj.getJSONObject("current")
+                    val today = jsonObj.getJSONArray("daily").getJSONObject(0)
 
-                    val updatedAt:Long = jsonObj.getLong("dt")
+                    val currentWeatherPictureName = "weather_icon_"+current.getJSONArray("weather").getJSONObject(0).getString("icon")
+                    val currentWeatherIcon = resources.getIdentifier(currentWeatherPictureName, "drawable", packageName)
+
+                    val updatedAt:Long = current.getLong("dt")
                     val updatedAtText = "Zaktualizowano: "+ SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.ENGLISH).
                     format(Date(updatedAt*1000))
-                    val temp = main.getString("temp")+"°C"
-                    val tempMin = "Min Temp: " + main.getString("temp_min")+"°C"
-                    val tempMax = "Max Temp: " + main.getString("temp_max")+"°C"
-                    val pressure = main.getString("pressure")
-                    val humidity = main.getString("humidity")
+                    val temp = Math.round(current.getString("temp").toDouble()).toString()+"°C"
+                    val tempMin = "Min Temp: " + Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"°C"
+                    val tempMax = "Max Temp: " + Math.round(today.getJSONObject("temp").getString("max").toDouble().toDouble()).toString()+"°C"
+                    val pressure = current.getString("pressure")
+                    val humidity = current.getString("humidity")
 
-                    val sunrise:Long = sys.getLong("sunrise")
-                    val sunset:Long = sys.getLong("sunset")
-                    val windSpeed = wind.getString("speed")
-                    val weatherDescription = weather.getString("description")
+                    val sunrise:Long = current.getLong("sunrise")
+                    val sunset:Long = current.getLong("sunset")
+                    val windSpeed = current.getString("wind_speed")
 
-                    val address = jsonObj.getString("name")+", "+sys.getString("country")
+                    val weatherDescription = current.getJSONArray("weather").getJSONObject(0).getString("description")
+
+                    val address = jsonObj.getString("name")+", "+jsonObj.getString("country")
 
                     // Aktualizacja widoków
                     findViewById<TextView>(R.id.address).text = address
                     findViewById<TextView>(R.id.updated_at).text =  updatedAtText
                     findViewById<TextView>(R.id.status).text = weatherDescription.capitalize()
+                    findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
                     findViewById<TextView>(R.id.temp).text = temp
                     findViewById<TextView>(R.id.temp_min).text = tempMin
                     findViewById<TextView>(R.id.temp_max).text = tempMax
@@ -135,14 +154,14 @@ class MainActivity : AppCompatActivity() {
 
                     // Pokaż główny layout, ukryj ProgressBar
                     findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
-                    //findViewById<RelativeLayout>(R.id.cityChangeContainer).visibility = View.GONE
+                    findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
                     findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
                 }
 
             } catch (e: Exception) {
                 // Pokaż komunikat błędu
                 findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
-                //findViewById<RelativeLayout>(R.id.cityChangeContainer).visibility = View.GONE
+                findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
                 findViewById<TextView>(R.id.errorText).visibility = View.VISIBLE
                 //findViewById<TextView>(R.id.errorText).text = jsonObj.getString("cod").toString()
             }

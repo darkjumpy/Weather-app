@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -91,17 +92,23 @@
                 android:id="@+id/buttonChangeCity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Zmień lokalizację"
-                android:backgroundTint="@color/colorAccent"
-                android:textColor="@android:color/white"
-                android:textAllCaps="false"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:elevation="4dp"
                 android:layout_margin="8dp"
-                android:stateListAnimator="@null" />
+                android:backgroundTint="@color/colorAccent"
+                android:elevation="4dp"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                android:stateListAnimator="@null"
+                android:text="Zmień lokalizację"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
+
+            <ImageView
+                android:id="@+id/mainWeatherImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_launcher_foreground" />
 
         </LinearLayout>
 
