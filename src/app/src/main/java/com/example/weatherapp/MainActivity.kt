@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Wprowadź nazwę miasta", Toast.LENGTH_SHORT).show()
             }
         }
-
+        //siema
         weatherTask().execute()
     }
 
