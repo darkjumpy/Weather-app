@@ -88,6 +88,16 @@
                 android:text="20 April 2012, 20:08 PM"
                 android:textSize="14dp" />
 
+            <TextView
+                android:id="@+id/temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:accessibilityLiveRegion="polite"
+                android:fontFamily="sans-serif-thin"
+                android:text="29°C"
+                android:textSize="90dp" />
+
             <Button
                 android:id="@+id/buttonChangeCity"
                 android:layout_width="wrap_content"
@@ -127,15 +137,6 @@
                 android:layout_gravity="center"
                 android:text="Clear Sky"
                 android:textSize="18dp" />
-
-            <TextView
-                android:id="@+id/temp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:fontFamily="sans-serif-thin"
-                android:text="29°C"
-                android:textSize="90dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
