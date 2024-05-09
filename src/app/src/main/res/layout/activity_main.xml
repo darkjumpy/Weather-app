@@ -166,10 +166,235 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/weatherHourlyContainer"
+                android:layout_width="match_parent"
+                android:layout_height="217dp"
+                android:background="#2F2A539A"
+                android:orientation="vertical"
+                android:padding="14sp">
+
+                <TextView
+                    android:id="@+id/TodaySummaryLine1"
+                    android:layout_width="match_parent"
+                    android:layout_height="22dp"
+                    android:text="Przeważnie słonecznie."
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/TodaySummaryLine2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Maks. temp. 19°C, min. temp 5°C."
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp" />
+
+                <View
+                    android:id="@+id/divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?android:attr/listDivider" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp" />
+
+                <HorizontalScrollView
+                    android:id="@+id/WeatherHourlyHorizontalScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="112dp">
+
+                    <LinearLayout
+                        android:id="@+id/weatherHourlyMainCells"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/weatherHourlyCell_1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/weatherHourlyHour_1"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="15:00"
+                                android:textAlignment="center" />
+
+                            <ImageView
+                                android:id="@+id/weatherHourlyImage_1"
+                                android:layout_width="50dp"
+                                android:layout_height="55dp"
+                                app:srcCompat="@drawable/weather_icon_01d" />
+
+                            <TextView
+                                android:id="@+id/weatherHourlyTemp_1"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="18°"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/weatherHourlyCell_2"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/weatherHourlyHour_2"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="15:00"
+                                android:textAlignment="center" />
+
+                            <ImageView
+                                android:id="@+id/weatherHourlyImage_2"
+                                android:layout_width="50dp"
+                                android:layout_height="55dp"
+                                app:srcCompat="@drawable/weather_icon_01d" />
+
+                            <TextView
+                                android:id="@+id/weatherHourlyTemp_2"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="18°"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/weatherHourlyCell_3"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/weatherHourlyHour_3"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="15:00"
+                                android:textAlignment="center" />
+
+                            <ImageView
+                                android:id="@+id/weatherHourlyImage_3"
+                                android:layout_width="50dp"
+                                android:layout_height="55dp"
+                                app:srcCompat="@drawable/weather_icon_01d" />
+
+                            <TextView
+                                android:id="@+id/weatherHourlyTemp_3"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="18°"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/weatherHourlyCell_4"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/weatherHourlyHour_4"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="15:00"
+                                android:textAlignment="center" />
+
+                            <ImageView
+                                android:id="@+id/weatherHourlyImage_4"
+                                android:layout_width="50dp"
+                                android:layout_height="55dp"
+                                app:srcCompat="@drawable/weather_icon_01d" />
+
+                            <TextView
+                                android:id="@+id/weatherHourlyTemp_4"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="18°"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/weatherHourlyCell_5"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/weatherHourlyHour_5"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="15:00"
+                                android:textAlignment="center" />
+
+                            <ImageView
+                                android:id="@+id/weatherHourlyImage_5"
+                                android:layout_width="50dp"
+                                android:layout_height="55dp"
+                                app:srcCompat="@drawable/weather_icon_01d" />
+
+                            <TextView
+                                android:id="@+id/weatherHourlyTemp_5"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="18°"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/weatherHourlyCell_6"
+                            android:layout_width="match_parent"
+                            android:layout_height="112dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/weatherHourlyHour_6"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="15:00"
+                                android:textAlignment="center" />
+
+                            <ImageView
+                                android:id="@+id/weatherHourlyImage_6"
+                                android:layout_width="50dp"
+                                android:layout_height="55dp"
+                                app:srcCompat="@drawable/weather_icon_01d" />
+
+                            <TextView
+                                android:id="@+id/weatherHourlyTemp_6"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="18°"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/detailsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="33dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

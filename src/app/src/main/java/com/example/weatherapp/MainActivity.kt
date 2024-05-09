@@ -121,7 +121,8 @@ class MainActivity : AppCompatActivity() {
                 }else{
                     val jsonObj = JSONObject(result)
                     val current = jsonObj.getJSONObject("current")
-                    val today = jsonObj.getJSONArray("daily").getJSONObject(0)
+                    val dailyJsonArray = jsonObj.getJSONArray("daily")
+                    val today = dailyJsonArray.getJSONObject(0)
 
                     val currentWeatherPictureName = "weather_icon_"+current.getJSONArray("weather").getJSONObject(0).getString("icon")
                     val currentWeatherIcon = resources.getIdentifier(currentWeatherPictureName, "drawable", packageName)
@@ -145,7 +146,7 @@ class MainActivity : AppCompatActivity() {
 
                     // Aktualizacja widoków
                     findViewById<TextView>(R.id.address).text = address
-                    findViewById<TextView>(R.id.status).text = weatherDescription.capitalize()
+                    findViewById<TextView>(R.id.status).text = weatherDescription
                     findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
                     findViewById<TextView>(R.id.temp).text = temp
                     findViewById<TextView>(R.id.temp_min).text = tempMin
@@ -156,6 +157,17 @@ class MainActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.wind).text = windSpeed
                     findViewById<TextView>(R.id.pressure).text = pressure
                     findViewById<TextView>(R.id.humidity).text = humidity
+
+                    findViewById<TextView>(R.id.TodaySummaryLine1).text = "Przeważnie "+weatherDescription.lowercase()+"."
+
+                    findViewById<TextView>(R.id.TodaySummaryLine2).text =
+                            "Maks. temp. "+Math.round(today.getJSONObject("temp").getString("max").toDouble()).toString()+
+                            "°C, min.temp "+Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"°C."
+
+                    //vvv TUTAJ BĘDZIE OGARNIĘTE WPROWADZANIE DANYCH POGODOWYCH GODZINOWYCH vvv
+                    for (i in 1..24) {
+
+                    }
 
                     // Pokaż główny layout, ukryj ProgressBar
                     findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
