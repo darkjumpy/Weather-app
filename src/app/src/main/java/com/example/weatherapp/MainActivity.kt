@@ -33,11 +33,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.buttonChangeCity).setOnClickListener {
+        findViewById<TextView>(R.id.address).setOnClickListener {
 
             findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.VISIBLE
             findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
             findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.GONE
+        }
+
+        findViewById<Button>(R.id.cancelButton).setOnClickListener {
+            hideKeyboard(this)
+            findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
+            findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
+            findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
         }
 
         findViewById<Button>(R.id.confirmButton).setOnClickListener {
@@ -120,10 +127,10 @@ class MainActivity : AppCompatActivity() {
                     val currentWeatherIcon = resources.getIdentifier(currentWeatherPictureName, "drawable", packageName)
 
                     val updatedAt:Long = current.getLong("dt")
-                    val updatedAtText = "Zaktualizowano: "+ SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.ENGLISH).
-                    format(Date(updatedAt*1000))
-                    val temp = Math.round(current.getString("temp").toDouble()).toString()+"°C"
-                    val tempMin = "Min Temp: " + Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"°C"
+                    val temp = Math.round(current.getString("temp").toDouble()).toString()+"°"
+                    val tempMin = Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"° / "+
+                                  Math.round(today.getJSONObject("temp").getString("max").toDouble()).toString()+"° Odczucie "+
+                                  Math.round(current.getString("feels_like").toDouble()).toString()+"°"
                     val tempMax = "Max Temp: " + Math.round(today.getJSONObject("temp").getString("max").toDouble().toDouble()).toString()+"°C"
                     val pressure = current.getString("pressure")
                     val humidity = current.getString("humidity")
@@ -138,12 +145,10 @@ class MainActivity : AppCompatActivity() {
 
                     // Aktualizacja widoków
                     findViewById<TextView>(R.id.address).text = address
-                    findViewById<TextView>(R.id.updated_at).text =  updatedAtText
                     findViewById<TextView>(R.id.status).text = weatherDescription.capitalize()
                     findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
                     findViewById<TextView>(R.id.temp).text = temp
                     findViewById<TextView>(R.id.temp_min).text = tempMin
-                    findViewById<TextView>(R.id.temp_max).text = tempMax
                     findViewById<TextView>(R.id.sunrise).text = SimpleDateFormat("hh:mm a", Locale.ENGLISH).
                     format(Date(sunrise*1000))
                     findViewById<TextView>(R.id.sunset).text = SimpleDateFormat("hh:mm a", Locale.ENGLISH).
