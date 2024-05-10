@@ -5,16 +5,15 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.android.synthetic.main.activity_main.mainWeatherImage
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
-import android.widget.*
-import org.json.JSONArray
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,11 +32,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.buttonChangeCity).setOnClickListener {
+        findViewById<TextView>(R.id.address).setOnClickListener {
 
             findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.VISIBLE
             findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
             findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.GONE
+        }
+
+        findViewById<Button>(R.id.cancelButton).setOnClickListener {
+            hideKeyboard(this)
+            findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
+            findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
+            findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
         }
 
         findViewById<Button>(R.id.confirmButton).setOnClickListener {
@@ -56,7 +62,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Wprowadź nazwę miasta", Toast.LENGTH_SHORT).show()
             }
         }
-
         weatherTask().execute()
     }
 
@@ -114,16 +119,18 @@ class MainActivity : AppCompatActivity() {
                 }else{
                     val jsonObj = JSONObject(result)
                     val current = jsonObj.getJSONObject("current")
-                    val today = jsonObj.getJSONArray("daily").getJSONObject(0)
+                    val dailyJsonArray = jsonObj.getJSONArray("daily")
+                    val hourlyJsonArray = jsonObj.getJSONArray("hourly")
+                    val today = dailyJsonArray.getJSONObject(0)
 
                     val currentWeatherPictureName = "weather_icon_"+current.getJSONArray("weather").getJSONObject(0).getString("icon")
                     val currentWeatherIcon = resources.getIdentifier(currentWeatherPictureName, "drawable", packageName)
 
                     val updatedAt:Long = current.getLong("dt")
-                    val updatedAtText = "Zaktualizowano: "+ SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.ENGLISH).
-                    format(Date(updatedAt*1000))
-                    val temp = Math.round(current.getString("temp").toDouble()).toString()+"°C"
-                    val tempMin = "Min Temp: " + Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"°C"
+                    val temp = Math.round(current.getString("temp").toDouble()).toString()+"°"
+                    val tempMin = Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"° / "+
+                                  Math.round(today.getJSONObject("temp").getString("max").toDouble()).toString()+"° Odczucie "+
+                                  Math.round(current.getString("feels_like").toDouble()).toString()+"°"
                     val tempMax = "Max Temp: " + Math.round(today.getJSONObject("temp").getString("max").toDouble().toDouble()).toString()+"°C"
                     val pressure = current.getString("pressure")
                     val humidity = current.getString("humidity")
@@ -138,19 +145,93 @@ class MainActivity : AppCompatActivity() {
 
                     // Aktualizacja widoków
                     findViewById<TextView>(R.id.address).text = address
-                    findViewById<TextView>(R.id.updated_at).text =  updatedAtText
-                    findViewById<TextView>(R.id.status).text = weatherDescription.capitalize()
+                    findViewById<TextView>(R.id.status).text = weatherDescription
                     findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
                     findViewById<TextView>(R.id.temp).text = temp
                     findViewById<TextView>(R.id.temp_min).text = tempMin
-                    findViewById<TextView>(R.id.temp_max).text = tempMax
-                    findViewById<TextView>(R.id.sunrise).text = SimpleDateFormat("hh:mm a", Locale.ENGLISH).
+                    findViewById<TextView>(R.id.sunrise).text = SimpleDateFormat("HH:mm", Locale.ENGLISH).
                     format(Date(sunrise*1000))
-                    findViewById<TextView>(R.id.sunset).text = SimpleDateFormat("hh:mm a", Locale.ENGLISH).
+                    findViewById<TextView>(R.id.sunset).text = SimpleDateFormat("HH:mm", Locale.ENGLISH).
                     format(Date(sunset*1000))
                     findViewById<TextView>(R.id.wind).text = windSpeed
                     findViewById<TextView>(R.id.pressure).text = pressure
                     findViewById<TextView>(R.id.humidity).text = humidity
+
+                    findViewById<TextView>(R.id.TodaySummaryLine1).text = "Przeważnie "+weatherDescription.lowercase()+"."
+
+                    findViewById<TextView>(R.id.TodaySummaryLine2).text =
+                            "Maks. temp. "+Math.round(today.getJSONObject("temp").getString("max").toDouble()).toString()+
+                            "°C, min.temp "+Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString()+"°C."
+
+                    // Pogoda godzinowa
+
+                    // Czyszczenie rodzica
+                    findViewById<LinearLayout>(R.id.weatherHourlyMainCells).removeAllViews()
+
+                    for (i in 1..24) {
+
+                        val thisHourWeather = hourlyJsonArray.getJSONObject(i)
+
+                        // Tworzenie nowego widoku LinearLayout
+                        val linearLayout = LinearLayout(this@MainActivity)
+                        linearLayout.id = i
+                        linearLayout.layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT
+                        )
+                        linearLayout.orientation = LinearLayout.VERTICAL
+
+                        // Tworzenie nowego widoku TextView
+                        val hourTextView = TextView(this@MainActivity)
+                        hourTextView.id = View.generateViewId()
+                        hourTextView.layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                        val thisHourDate:Long = thisHourWeather.getLong("dt")
+                        hourTextView.text = SimpleDateFormat("HH:mm", Locale.ENGLISH).
+                        format(Date(thisHourDate*1000))
+
+                        hourTextView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+
+                        // Tworzenie nowego widoku ImageView
+                        val imageImageView = ImageView(this@MainActivity)
+                        imageImageView.id = View.generateViewId()
+                        val imageLayoutParams = LinearLayout.LayoutParams(
+                            (40 * resources.displayMetrics.density).toInt(),
+                            (40 * resources.displayMetrics.density).toInt()
+                        )
+                        imageLayoutParams.setMargins(
+                            (5 * resources.displayMetrics.density).toInt(),
+                            (10 * resources.displayMetrics.density).toInt(),
+                            (5 * resources.displayMetrics.density).toInt(),
+                            (10 * resources.displayMetrics.density).toInt()
+                        )
+                        imageImageView.layoutParams = imageLayoutParams
+
+                        val hourlyWeatherPictureName = "weather_icon_"+thisHourWeather.getJSONArray("weather").getJSONObject(0).getString("icon")
+                        val hourlyWeatherIcon = resources.getIdentifier(hourlyWeatherPictureName, "drawable", packageName)
+
+                        imageImageView.setImageResource(hourlyWeatherIcon)
+
+                        // Tworzenie nowego widoku TextView
+                        val tempTextView = TextView(this@MainActivity)
+                        tempTextView.id = View.generateViewId()
+                        tempTextView.layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                        tempTextView.text = Math.round(thisHourWeather.getString("temp").toDouble()).toString()+"°"
+                        tempTextView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+
+                        // Dodawanie widoków do widoku LinearLayout
+                        linearLayout.addView(hourTextView)
+                        linearLayout.addView(imageImageView)
+                        linearLayout.addView(tempTextView)
+
+                        // Dodawanie widoku LinearLayout do rodzica
+                        findViewById<LinearLayout>(R.id.weatherHourlyMainCells).addView(linearLayout)
+                    }
 
                     // Pokaż główny layout, ukryj ProgressBar
                     findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
