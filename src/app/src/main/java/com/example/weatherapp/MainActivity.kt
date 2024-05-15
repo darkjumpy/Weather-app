@@ -61,9 +61,10 @@ class MainActivity : AppCompatActivity() {
         weatherTask().execute()
     }
 
-    inner class weatherTask : AsyncTask<String, Void, String>() {
+    inner class weatherTask() : AsyncTask<String, Void, String>() {
         override fun onPreExecute() {
             super.onPreExecute()
+            // Pokaż ProgressBar, ukryj główny layout
             findViewById<ProgressBar>(R.id.loader).visibility = View.VISIBLE
             findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.GONE
             findViewById<TextView>(R.id.errorText).visibility = View.GONE
@@ -145,28 +146,39 @@ class MainActivity : AppCompatActivity() {
                             "°C, min.temp " + Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString() + "°C."
 
                     // Pogoda godzinowa
+
+                    // Czyszczenie rodzica
                     findViewById<LinearLayout>(R.id.weatherHourlyMainCells).removeAllViews()
 
                     for (i in 1..24) {
+
                         val thisHourWeather = hourlyJsonArray.getJSONObject(i)
 
+                        // Tworzenie nowego widoku LinearLayout
                         val linearLayout = LinearLayout(this@MainActivity)
+                        linearLayout.id = i
                         linearLayout.layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT
                         )
                         linearLayout.orientation = LinearLayout.VERTICAL
 
+                        // Tworzenie nowego widoku TextView
                         val hourTextView = TextView(this@MainActivity)
+                        hourTextView.id = View.generateViewId()
                         hourTextView.layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         )
-                        val thisHourDate: Long = thisHourWeather.getLong("dt")
-                        hourTextView.text = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(thisHourDate * 1000))
+                        val thisHourDate:Long = thisHourWeather.getLong("dt")
+                        hourTextView.text = SimpleDateFormat("HH:mm", Locale.ENGLISH).
+                        format(Date(thisHourDate*1000))
+
                         hourTextView.textAlignment = View.TEXT_ALIGNMENT_CENTER
 
+                        // Tworzenie nowego widoku ImageView
                         val imageImageView = ImageView(this@MainActivity)
+                        imageImageView.id = View.generateViewId()
                         val imageLayoutParams = LinearLayout.LayoutParams(
                             (40 * resources.displayMetrics.density).toInt(),
                             (40 * resources.displayMetrics.density).toInt()
@@ -179,28 +191,31 @@ class MainActivity : AppCompatActivity() {
                         )
                         imageImageView.layoutParams = imageLayoutParams
 
-                        val hourlyWeatherPictureName = "weather_icon_" + thisHourWeather.getJSONArray("weather").getJSONObject(0).getString("icon")
+                        val hourlyWeatherPictureName = "weather_icon_"+thisHourWeather.getJSONArray("weather").getJSONObject(0).getString("icon")
                         val hourlyWeatherIcon = resources.getIdentifier(hourlyWeatherPictureName, "drawable", packageName)
+
                         imageImageView.setImageResource(hourlyWeatherIcon)
 
+                        // Tworzenie nowego widoku TextView
                         val tempTextView = TextView(this@MainActivity)
+                        tempTextView.id = View.generateViewId()
                         tempTextView.layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         )
-                        tempTextView.text = Math.round(thisHourWeather.getString("temp").toDouble()).toString() + "°"
+                        tempTextView.text = Math.round(thisHourWeather.getString("temp").toDouble()).toString()+"°"
                         tempTextView.textAlignment = View.TEXT_ALIGNMENT_CENTER
 
+                        // Dodawanie widoków do widoku LinearLayout
                         linearLayout.addView(hourTextView)
                         linearLayout.addView(imageImageView)
                         linearLayout.addView(tempTextView)
 
+                        // Dodawanie widoku LinearLayout do rodzica
                         findViewById<LinearLayout>(R.id.weatherHourlyMainCells).addView(linearLayout)
                     }
-
-                    // Prognoza na 5 dni
                     updateFiveDayForecast(dailyJsonArray)
-
+                    // Pokaż główny layout, ukryj ProgressBar
                     findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
                     findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
                     findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
@@ -213,14 +228,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         private fun updateFiveDayForecast(dailyJsonArray: JSONArray) {
-            val forecastContainer = findViewById<LinearLayout>(R.id.fiveDayForecastContainer)
+            val forecastContainer = findViewById<LinearLayout>(R.id.sevenDayForecastContainer)
             forecastContainer.removeAllViews()
 
             val dayNames = arrayOf("Niedziela", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota")
             val calendar = Calendar.getInstance()
             val today = calendar.get(Calendar.DAY_OF_WEEK) - 1
 
-            for (i in 1..5) {
+            for (i in 1..7) {
                 val dayWeather = dailyJsonArray.getJSONObject(i)
                 val dayIndex = (today + i) % 7
                 val dayName = when (i) {
@@ -228,8 +243,8 @@ class MainActivity : AppCompatActivity() {
                     else -> dayNames[dayIndex]
                 }
 
-                val tempDay = Math.round(dayWeather.getJSONObject("temp").getDouble("day")).toString() + "°"
-                val weatherDesc = dayWeather.getJSONArray("weather").getJSONObject(0).getString("description")
+                val tempMax = Math.round(dayWeather.getJSONObject("temp").getDouble("max")).toString() + "°"
+                val tempMin = Math.round(dayWeather.getJSONObject("temp").getDouble("min")).toString() + "°"
                 val weatherIcon = dayWeather.getJSONArray("weather").getJSONObject(0).getString("icon")
 
                 val dayLayout = LinearLayout(this@MainActivity)
@@ -254,31 +269,40 @@ class MainActivity : AppCompatActivity() {
                     (40 * resources.displayMetrics.density).toInt(),
                     (40 * resources.displayMetrics.density).toInt()
                 )
+
+                imageLayoutParams.setMargins(
+                    0,
+                    0,
+                    (20 * resources.displayMetrics.density).toInt(),
+                    0
+                )
+
                 weatherImageView.layoutParams = imageLayoutParams
                 val weatherIconRes = resources.getIdentifier("weather_icon_$weatherIcon", "drawable", packageName)
                 weatherImageView.setImageResource(weatherIconRes)
 
-                val weatherDescTextView = TextView(this@MainActivity)
-                weatherDescTextView.layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    2f
-                )
-                weatherDescTextView.text = weatherDesc
-                weatherDescTextView.textSize = 16f
-
-                val tempTextView = TextView(this@MainActivity)
-                tempTextView.layoutParams = LinearLayout.LayoutParams(
+                val tempMaxTextView = TextView(this@MainActivity)
+                tempMaxTextView.layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                tempTextView.text = tempDay
-                tempTextView.textSize = 16f
+                tempMaxTextView.text = tempMax
+                tempMaxTextView.textSize = 16f
+                tempMaxTextView.width = (40 * resources.displayMetrics.density).toInt()
+
+                val tempMinTextView = TextView(this@MainActivity)
+                tempMinTextView.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                tempMinTextView.text = tempMin
+                tempMinTextView.textSize = 16f
+                tempMinTextView.width = (26 * resources.displayMetrics.density).toInt()
 
                 dayLayout.addView(dayNameTextView)
                 dayLayout.addView(weatherImageView)
-                dayLayout.addView(weatherDescTextView)
-                dayLayout.addView(tempTextView)
+                dayLayout.addView(tempMaxTextView)
+                dayLayout.addView(tempMinTextView)
 
                 forecastContainer.addView(dayLayout)
             }
