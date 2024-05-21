@@ -119,6 +119,10 @@ class MainActivity : AppCompatActivity() {
                     val currentWeatherPictureName = "weather_icon_" + current.getJSONArray("weather").getJSONObject(0).getString("icon")
                     val currentWeatherIcon = resources.getIdentifier(currentWeatherPictureName, "drawable", packageName)
 
+                    var isDay = true
+
+                    if(currentWeatherPictureName[15] == 'd'){isDay = true}else{isDay = false}
+
                     val updatedAt: Long = current.getLong("dt")
                     val temp = Math.round(current.getString("temp").toDouble()).toString() + "°"
                     val tempMin = Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString() + "° / " +
@@ -139,6 +143,10 @@ class MainActivity : AppCompatActivity() {
                     val address = jsonObj.getString("name") + ", " + jsonObj.getString("country")
 
                     // Aktualizacja widoków
+
+                    if(!isDay) {
+                        findViewById<RelativeLayout>(R.id.wholeAppContainer).setBackgroundResource(R.drawable.night_gradient_bg)
+                    }
                     findViewById<TextView>(R.id.address).text = address
                     findViewById<TextView>(R.id.status).text = weatherDescription
                     findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
