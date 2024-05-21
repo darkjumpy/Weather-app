@@ -127,6 +127,8 @@ class MainActivity : AppCompatActivity() {
                     val tempMax = "Max Temp: " + Math.round(today.getJSONObject("temp").getString("max").toDouble().toDouble()).toString() + "°C"
                     val pressure = current.getString("pressure")
                     val humidity = current.getString("humidity")
+                    val uvi = current.getString("uvi")
+                    val dewPoint = Math.round(current.getString("dew_point").toDouble()).toString()
 
                     val sunrise: Long = current.getLong("sunrise")
                     val sunset: Long = current.getLong("sunset")
@@ -142,11 +144,10 @@ class MainActivity : AppCompatActivity() {
                     findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
                     findViewById<TextView>(R.id.temp).text = temp
                     findViewById<TextView>(R.id.temp_min).text = tempMin
-                    findViewById<TextView>(R.id.sunrise).text = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(sunrise * 1000))
-                    findViewById<TextView>(R.id.sunset).text = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(sunset * 1000))
-                    findViewById<TextView>(R.id.wind).text = windSpeed
-                    findViewById<TextView>(R.id.pressure).text = pressure
-                    findViewById<TextView>(R.id.humidity).text = humidity
+                    findViewById<TextView>(R.id.pressureValue).text = uvi
+                    findViewById<TextView>(R.id.humidityValue).text = humidity + "%"
+                    findViewById<TextView>(R.id.pressureValue).text = pressure + " hPa"
+                    findViewById<TextView>(R.id.dewPointValue).text = dewPoint + "°"
 
                     findViewById<TextView>(R.id.TodaySummaryLine1).text = "Przeważnie " + weatherDescription.lowercase() + "."
                     findViewById<TextView>(R.id.TodaySummaryLine2).text = "Maks. temp. " + Math.round(today.getJSONObject("temp").getString("max").toDouble()).toString() +
