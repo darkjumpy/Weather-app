@@ -1,22 +1,29 @@
 package com.example.weatherapp
 
 import android.app.Activity
+import android.graphics.Rect
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.github.tianma8023.model.Time
+import com.github.tianma8023.ssv.SunriseSunsetView
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class MainActivity : AppCompatActivity() {
 
     var CITY: String = "Rzeszów,PL" // Domyślne miasto
     val API: String = "7b02db76a019da40323a7ba8c275a0d9" // Klucz API
+
+    var sunAnimated = true
 
     fun hideKeyboard(activity: Activity) {
         val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -112,6 +119,10 @@ class MainActivity : AppCompatActivity() {
                     val currentWeatherPictureName = "weather_icon_" + current.getJSONArray("weather").getJSONObject(0).getString("icon")
                     val currentWeatherIcon = resources.getIdentifier(currentWeatherPictureName, "drawable", packageName)
 
+                    var isDay = true
+
+                    if(currentWeatherPictureName[15] == 'd'){isDay = true}else{isDay = false}
+
                     val updatedAt: Long = current.getLong("dt")
                     val temp = Math.round(current.getString("temp").toDouble()).toString() + "°"
                     val tempMin = Math.round(today.getJSONObject("temp").getString("min").toDouble()).toString() + "° / " +
@@ -120,6 +131,8 @@ class MainActivity : AppCompatActivity() {
                     val tempMax = "Max Temp: " + Math.round(today.getJSONObject("temp").getString("max").toDouble().toDouble()).toString() + "°C"
                     val pressure = current.getString("pressure")
                     val humidity = current.getString("humidity")
+                    val uvi = current.getString("uvi")
+                    val dewPoint = Math.round(current.getString("dew_point").toDouble()).toString()
 
                     val sunrise: Long = current.getLong("sunrise")
                     val sunset: Long = current.getLong("sunset")
@@ -130,16 +143,19 @@ class MainActivity : AppCompatActivity() {
                     val address = jsonObj.getString("name") + ", " + jsonObj.getString("country")
 
                     // Aktualizacja widoków
+
+                    if(!isDay) {
+                        findViewById<RelativeLayout>(R.id.wholeAppContainer).setBackgroundResource(R.drawable.night_gradient_bg)
+                    }
                     findViewById<TextView>(R.id.address).text = address
                     findViewById<TextView>(R.id.status).text = weatherDescription
                     findViewById<ImageView>(R.id.mainWeatherImage).setImageResource(currentWeatherIcon)
                     findViewById<TextView>(R.id.temp).text = temp
                     findViewById<TextView>(R.id.temp_min).text = tempMin
-                    findViewById<TextView>(R.id.sunrise).text = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(sunrise * 1000))
-                    findViewById<TextView>(R.id.sunset).text = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(sunset * 1000))
-                    findViewById<TextView>(R.id.wind).text = windSpeed
-                    findViewById<TextView>(R.id.pressure).text = pressure
-                    findViewById<TextView>(R.id.humidity).text = humidity
+                    findViewById<TextView>(R.id.pressureValue).text = uvi
+                    findViewById<TextView>(R.id.humidityValue).text = humidity + "%"
+                    findViewById<TextView>(R.id.pressureValue).text = pressure + " hPa"
+                    findViewById<TextView>(R.id.dewPointValue).text = dewPoint + "°"
 
                     findViewById<TextView>(R.id.TodaySummaryLine1).text = "Przeważnie " + weatherDescription.lowercase() + "."
                     findViewById<TextView>(R.id.TodaySummaryLine2).text = "Maks. temp. " + Math.round(today.getJSONObject("temp").getString("max").toDouble()).toString() +
@@ -215,6 +231,40 @@ class MainActivity : AppCompatActivity() {
                         findViewById<LinearLayout>(R.id.weatherHourlyMainCells).addView(linearLayout)
                     }
                     updateFiveDayForecast(dailyJsonArray)
+
+                    // Wschód i zachód słońca
+                    val sunView = findViewById<com.github.tianma8023.ssv.SunriseSunsetView>(R.id.ssv)
+                    val sunViewAnimationTrigger = findViewById<LinearLayout>(R.id.SunsetAnimationTrigger)
+                    sunView.setSunriseTime(Time(
+                        SimpleDateFormat("HH", Locale.ENGLISH).format(Date(sunrise * 1000)).toInt(),
+                        SimpleDateFormat("mm", Locale.ENGLISH).format(Date(sunrise * 1000)).toInt()
+                    ))
+                    sunView.setSunsetTime(Time(
+                        SimpleDateFormat("HH", Locale.ENGLISH).format(Date(sunset * 1000)).toInt(),
+                        SimpleDateFormat("mm", Locale.ENGLISH).format(Date(sunset * 1000)).toInt()
+                    ))
+
+                    /// Listener przewijania
+                    val scrollChangedListener = ViewTreeObserver.OnScrollChangedListener {
+                        val sunViewRect = Rect()
+                        sunViewAnimationTrigger.getGlobalVisibleRect(sunViewRect)
+
+                        val mainContainerRect = Rect()
+                        findViewById<RelativeLayout>(R.id.mainContainer).getGlobalVisibleRect(mainContainerRect)
+
+                        if (Rect.intersects(sunViewRect, mainContainerRect) && sunAnimated) {
+                            sunAnimated = false
+                            sunView.startAnimate()
+                        }
+                    }
+
+                    // Dodanie listenera przewijania
+                    sunView.viewTreeObserver.addOnScrollChangedListener(scrollChangedListener)
+
+                    findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
+                    findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
+
+
                     // Pokaż główny layout, ukryj ProgressBar
                     findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
                     findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
