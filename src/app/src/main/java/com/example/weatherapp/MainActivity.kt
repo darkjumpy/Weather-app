@@ -11,11 +11,19 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.github.tianma8023.model.Time
 import com.github.tianma8023.ssv.SunriseSunsetView
+import com.google.android.gms.location.FusedLocationProviderClient
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.location.Location
+import com.google.android.gms.location.LocationServices
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +31,45 @@ class MainActivity : AppCompatActivity() {
     var CITY: String = "Rzeszów,PL" // Domyślne miasto
     val API: String = "7b02db76a019da40323a7ba8c275a0d9" // Klucz API
 
+    var firstCity = true
+
     var sunAnimated = true
+
+    private val PERMISSION_REQUEST_LOCATION = 1
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    var lat: String = ""
+    var lon: String = ""
+
+    private fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_LOCATION)
+        } else {
+            getLastLocation()
+        }
+    }
+
+    private fun getLastLocation() {
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                lat = location.latitude.toString()
+                lon = location.longitude.toString()
+                weatherTask().execute()
+            } else {
+                Toast.makeText(this, "Nie można uzyskać lokalizacji", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_LOCATION) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                getLastLocation()
+            } else {
+                Toast.makeText(this, "Uprawnienia do lokalizacji są wymagane", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     fun hideKeyboard(activity: Activity) {
         val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -34,8 +80,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         findViewById<TextView>(R.id.address).setOnClickListener {
             findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.VISIBLE
@@ -65,7 +114,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Wprowadź nazwę miasta", Toast.LENGTH_SHORT).show()
             }
         }
-        weatherTask().execute()
+        checkLocationPermission()
     }
 
     inner class weatherTask() : AsyncTask<String, Void, String>() {
@@ -81,20 +130,36 @@ class MainActivity : AppCompatActivity() {
             var geoResponse: String?
             var response: String?
             try {
-                geoResponse = URL("https://api.openweathermap.org/geo/1.0/direct?q=$CITY&limit=1&appid=$API").readText(Charsets.UTF_8)
+                if(firstCity==true){
+                    firstCity=false
+                    response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").readText(Charsets.UTF_8)
 
-                val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
-                val name = jsonGeoObject.getString("name")
-                val country = jsonGeoObject.getString("country")
-                val lat = jsonGeoObject.getString("lat")
-                val lon = jsonGeoObject.getString("lon")
+                    val jsonResponse = JSONObject(response)
 
-                response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").readText(Charsets.UTF_8)
+                    val geoResponse = URL("https://api.openweathermap.org/geo/1.0/reverse?lat=$lat&lon=$lon&limit=1&appid=$API").readText(Charsets.UTF_8)
+                    val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
+                    val name = jsonGeoObject.getString("name")
+                    val country = jsonGeoObject.getString("country")
 
-                val jsonResponse = JSONObject(response)
-                jsonResponse.put("name", name)
-                jsonResponse.put("country", country)
-                response = jsonResponse.toString()
+                    jsonResponse.put("name", name)
+                    jsonResponse.put("country", country)
+                    response = jsonResponse.toString()
+                }else{
+                    geoResponse = URL("https://api.openweathermap.org/geo/1.0/direct?q=$CITY&limit=1&appid=$API").readText(Charsets.UTF_8)
+
+                    val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
+                    val name = jsonGeoObject.getString("name")
+                    val country = jsonGeoObject.getString("country")
+                    val lat = jsonGeoObject.getString("lat")
+                    val lon = jsonGeoObject.getString("lon")
+
+                    response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").readText(Charsets.UTF_8)
+
+                    val jsonResponse = JSONObject(response)
+                    jsonResponse.put("name", name)
+                    jsonResponse.put("country", country)
+                    response = jsonResponse.toString()
+                }
 
             } catch (e: Exception) {
                 response = null
