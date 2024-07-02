@@ -28,17 +28,18 @@ import com.google.android.gms.location.LocationServices
 
 class MainActivity : AppCompatActivity() {
 
-    var CITY: String = "Rzeszów,PL" // Domyślne miasto
-    val API: String = "7b02db76a019da40323a7ba8c275a0d9" // Klucz API
-
-    var firstCity = true
+    val viewModel = MainActivityViewModel()
 
     var sunAnimated = true
+    var firstBoot = true
 
     private val PERMISSION_REQUEST_LOCATION = 1
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    var lat: String = ""
-    var lon: String = ""
+
+    var phoneLat: String = ""
+    var phoneLon: String = ""
+
+    var CITY: String = "Rzeszów,PL" // Domyślne miasto
 
     private fun checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -51,8 +52,8 @@ class MainActivity : AppCompatActivity() {
     private fun getLastLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
-                lat = location.latitude.toString()
-                lon = location.longitude.toString()
+                phoneLat = location.latitude.toString()
+                phoneLon = location.longitude.toString()
                 weatherTask().execute()
             } else {
                 Toast.makeText(this, "Nie można uzyskać lokalizacji", Toast.LENGTH_SHORT).show()
@@ -127,48 +128,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun doInBackground(vararg params: String?): String? {
-            var geoResponse: String?
-            var response: String?
-            try {
-                if(firstCity==true){
-                    firstCity=false
-                    response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").readText(Charsets.UTF_8)
-
-                    val jsonResponse = JSONObject(response)
-
-                    val geoResponse = URL("https://api.openweathermap.org/geo/1.0/reverse?lat=$lat&lon=$lon&limit=1&appid=$API").readText(Charsets.UTF_8)
-                    val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
-                    val name = jsonGeoObject.getString("name")
-                    val country = jsonGeoObject.getString("country")
-
-                    jsonResponse.put("name", name)
-                    jsonResponse.put("country", country)
-                    response = jsonResponse.toString()
-                }else{
-                    geoResponse = URL("https://api.openweathermap.org/geo/1.0/direct?q=$CITY&limit=1&appid=$API").readText(Charsets.UTF_8)
-
-                    val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
-                    val name = jsonGeoObject.getString("name")
-                    val country = jsonGeoObject.getString("country")
-                    val lat = jsonGeoObject.getString("lat")
-                    val lon = jsonGeoObject.getString("lon")
-
-                    response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").readText(Charsets.UTF_8)
-
-                    val jsonResponse = JSONObject(response)
-                    jsonResponse.put("name", name)
-                    jsonResponse.put("country", country)
-                    response = jsonResponse.toString()
-                }
-
-            } catch (e: Exception) {
-                response = null
-            }
-            return response
+            return viewModel.getApiData(phoneLat, phoneLon, CITY, !firstBoot)
         }
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
+            firstBoot = false
             try {
                 if (result == null) {
                     Toast.makeText(applicationContext, "Miasto nie zostało znalezione", Toast.LENGTH_SHORT).show()
