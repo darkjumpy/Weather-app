@@ -1,30 +1,36 @@
 package com.example.weatherapp
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.View
 import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.RelativeLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.github.tianma8023.model.Time
 import com.github.tianma8023.ssv.SunriseSunsetView
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.util.*
-
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import android.location.Location
-import com.google.android.gms.location.LocationServices
-
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,6 +55,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 lat = location.latitude.toString()
@@ -80,7 +96,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -120,7 +135,6 @@ class MainActivity : AppCompatActivity() {
     inner class weatherTask() : AsyncTask<String, Void, String>() {
         override fun onPreExecute() {
             super.onPreExecute()
-            // Pokaż ProgressBar, ukryj główny layout
             findViewById<ProgressBar>(R.id.loader).visibility = View.VISIBLE
             findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.GONE
             findViewById<TextView>(R.id.errorText).visibility = View.GONE
@@ -130,8 +144,8 @@ class MainActivity : AppCompatActivity() {
             var geoResponse: String?
             var response: String?
             try {
-                if(firstCity==true){
-                    firstCity=false
+                if(firstCity) {
+                    firstCity = false
                     response = URL("https://api.openweathermap.org/data/3.0/onecall?lon=$lon&lat=$lat&units=metric&lang=pl&exclude=minutely,alerts&appid=$API").readText(Charsets.UTF_8)
 
                     val jsonResponse = JSONObject(response)
@@ -144,7 +158,7 @@ class MainActivity : AppCompatActivity() {
                     jsonResponse.put("name", name)
                     jsonResponse.put("country", country)
                     response = jsonResponse.toString()
-                }else{
+                } else {
                     geoResponse = URL("https://api.openweathermap.org/geo/1.0/direct?q=$CITY&limit=1&appid=$API").readText(Charsets.UTF_8)
 
                     val jsonGeoObject = JSONArray(geoResponse).getJSONObject(0)
@@ -160,7 +174,6 @@ class MainActivity : AppCompatActivity() {
                     jsonResponse.put("country", country)
                     response = jsonResponse.toString()
                 }
-
             } catch (e: Exception) {
                 response = null
             }
@@ -298,7 +311,7 @@ class MainActivity : AppCompatActivity() {
                     updateFiveDayForecast(dailyJsonArray)
 
                     // Wschód i zachód słońca
-                    val sunView = findViewById<com.github.tianma8023.ssv.SunriseSunsetView>(R.id.ssv)
+                    val sunView = findViewById<SunriseSunsetView>(R.id.ssv)
                     val sunViewAnimationTrigger = findViewById<LinearLayout>(R.id.SunsetAnimationTrigger)
                     sunView.setSunriseTime(Time(
                         SimpleDateFormat("HH", Locale.ENGLISH).format(Date(sunrise * 1000)).toInt(),
@@ -334,6 +347,18 @@ class MainActivity : AppCompatActivity() {
                     findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
                     findViewById<LinearLayout>(R.id.cityChangeContainer).visibility = View.GONE
                     findViewById<RelativeLayout>(R.id.mainContainer).visibility = View.VISIBLE
+
+                    // Faza księżyca i czasy wschodu i zachodu
+                    val moonPhase = today.getDouble("moon_phase")
+                    val moonrise = today.getLong("moonrise")
+                    val moonset = today.getLong("moonset")
+
+                    val moonriseTime = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(moonrise * 1000))
+                    val moonsetTime = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(moonset * 1000))
+
+                    findViewById<TextView>(R.id.moonriseTime).text = moonriseTime
+                    findViewById<TextView>(R.id.moonsetTime).text = moonsetTime
+                    updateMoonPhaseUI(moonPhase)
                 }
             } catch (e: Exception) {
                 findViewById<ProgressBar>(R.id.loader).visibility = View.GONE
@@ -421,6 +446,25 @@ class MainActivity : AppCompatActivity() {
 
                 forecastContainer.addView(dayLayout)
             }
+        }
+
+        private fun updateMoonPhaseUI(moonPhase: Double) {
+            val moonImageView: ImageView = findViewById(R.id.moonImageView)
+            val moonPhaseTextView: TextView = findViewById(R.id.moonPhaseTextView)
+
+            val (moonPhaseImageResource, moonPhaseDescription) = when {
+                moonPhase == 0.0 || moonPhase == 1.0 -> Pair(R.drawable.new_moon, "Nów")
+                moonPhase == 0.25 -> Pair(R.drawable.first_quarter, "Pierwsza kwadra")
+                moonPhase == 0.5 -> Pair(R.drawable.full_moon, "Pełnia")
+                moonPhase == 0.75 -> Pair(R.drawable.last_quarter, "Ostatnia kwadra")
+                moonPhase < 0.25 -> Pair(R.drawable.waxing_crescent, "Przybywający sierp")
+                moonPhase < 0.5 -> Pair(R.drawable.waxing_gibbous, "Przybywający garb")
+                moonPhase < 0.75 -> Pair(R.drawable.waning_gibbous, "Ubywający garb")
+                else -> Pair(R.drawable.waning_crescent, "Ubywający sierp")
+            }
+
+            moonImageView.setImageResource(moonPhaseImageResource)
+            moonPhaseTextView.text = moonPhaseDescription
         }
     }
 }
