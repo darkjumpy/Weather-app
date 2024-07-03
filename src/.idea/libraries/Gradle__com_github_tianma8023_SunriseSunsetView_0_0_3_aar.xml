@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.tianma8023:SunriseSunsetView:0.0.3@aar" external-system-id="GRADLE">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-4/9e605b1d87a32bd3db4cb4210c967486/transformed/jetified-SunriseSunsetView-0.0.3/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-4/9e605b1d87a32bd3db4cb4210c967486/transformed/jetified-SunriseSunsetView-0.0.3/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-4/9e605b1d87a32bd3db4cb4210c967486/transformed/jetified-SunriseSunsetView-0.0.3/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.tianma8023/SunriseSunsetView/0.0.3/31ba5541a21e9c5aae9ceff11e4aa807edefbf4f/SunriseSunsetView-0.0.3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.tianma8023/SunriseSunsetView/0.0.3/2c7dfda6f61ce254cdf32c229368a6f7f7cb8ed5/SunriseSunsetView-0.0.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

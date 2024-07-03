@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="moon_phase_image">Moon Phase Image</string>
+</resources>
