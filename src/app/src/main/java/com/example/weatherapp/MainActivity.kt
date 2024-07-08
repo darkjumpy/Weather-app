@@ -147,6 +147,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
+            firstBoot=false
             try {
                 if (result == null) {
                     Toast.makeText(applicationContext, "Miasto nie zostało znalezione", Toast.LENGTH_SHORT).show()
